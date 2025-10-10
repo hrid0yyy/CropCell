@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - CropBox Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="page-title">
+        <i class="fas fa-tachometer-alt"></i> Storage Dashboard
+    </h1>
+    <p style="text-align: center; color: #718096; font-size: 1.1rem;">
+        Welcome back, <strong>{{ username }}</strong>! Here's your storage overview.
+    </p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon potato">
+            <i class="fas fa-seedling"></i>
+        </div>
+        <div class="stat-value">{{ vegetables.potato.quantity }}</div>
+        <div class="stat-label">{{ vegetables.potato.weight }} kg Potatoes</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon onion">
+            <i class="fas fa-circle"></i>
+        </div>
+        <div class="stat-value">{{ vegetables.onion.quantity }}</div>
+        <div class="stat-label">{{ vegetables.onion.weight }} kg Onions</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon tomato">
+            <i class="fas fa-apple-alt"></i>
+        </div>
+        <div class="stat-value">{{ vegetables.tomato.quantity }}</div>
+        <div class="stat-label">{{ vegetables.tomato.weight }} kg Tomatoes</div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3><i class="fas fa-history"></i> Recent RFID Access Logs</h3>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{{ url_for('dashboard.dashboard') }}" 
+               class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </a>
+            {% if recent_requests %}
+                <a href="{{ url_for('dashboard.clear_logs') }}" 
+                   onclick="return confirm('Are you sure you want to clear all RFID access logs? This action cannot be undone.')"
+                   class="btn btn-danger" style="padding: 8px 16px; font-size: 0.9rem;">
+                    <i class="fas fa-trash"></i> Clear All Logs
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if recent_requests %}
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-clock"></i> Timestamp</th>
+                    <th><i class="fas fa-id-card"></i> RFID Number</th>
+                    <th><i class="fas fa-check-circle"></i> Status</th>
+                    <th><i class="fas fa-network-wired"></i> IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in recent_requests %}
+                <tr>
+                    <td>{{ req.formatted_timestamp }}</td>
+                    <td>{{ req.rfid_number }}</td>
+                    <td>
+                        <span style="color: {% if req.verified %}#48bb78{% else %}#e53e3e{% endif %}; font-weight: 500;">
+                            {% if req.verified %}
+                                <i class="fas fa-check"></i> Verified
+                            {% else %}
+                                <i class="fas fa-times"></i> Denied
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ req.ip_address }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: #718096; text-align: center; padding: 2rem;">
+            <i class="fas fa-info-circle"></i> No recent access logs.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

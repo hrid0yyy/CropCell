@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Vegetable Storage - CropBox Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="page-title">
+        <i class="fas fa-carrot"></i> Vegetable Storage Management
+    </h1>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert">
+                <i class="fas fa-info-circle"></i> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon potato">
+            <i class="fas fa-seedling"></i>
+        </div>
+        <div class="stat-value">{{ vegetables.potato.quantity }}</div>
+        <div class="stat-label">{{ vegetables.potato.weight }} kg Potatoes</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon onion">
+            <i class="fas fa-circle"></i>
+        </div>
+        <div class="stat-value">{{ vegetables.onion.quantity }}</div>
+        <div class="stat-label">{{ vegetables.onion.weight }} kg Onions</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon tomato">
+            <i class="fas fa-apple-alt"></i>
+        </div>
+        <div class="stat-value">{{ vegetables.tomato.quantity }}</div>
+        <div class="stat-label">{{ vegetables.tomato.weight }} kg Tomatoes</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3><i class="fas fa-plus"></i> Update Storage</h3>
+    <form method="post" action="{{ url_for('vegetables.update_vegetables') }}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div>
+                <h4 style="color: #d69e2e; margin-bottom: 1rem;">
+                    <i class="fas fa-seedling"></i> Potatoes
+                </h4>
+                <div class="form-group">
+                    <label for="potato_quantity">Quantity (pieces)</label>
+                    <input type="number" id="potato_quantity" name="potato_quantity" 
+                           value="{{ vegetables.potato.quantity }}" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="potato_weight">Weight (kg)</label>
+                    <input type="number" id="potato_weight" name="potato_weight" 
+                           value="{{ vegetables.potato.weight }}" class="form-control" min="0" step="0.1">
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="color: #805ad5; margin-bottom: 1rem;">
+                    <i class="fas fa-circle"></i> Onions
+                </h4>
+                <div class="form-group">
+                    <label for="onion_quantity">Quantity (pieces)</label>
+                    <input type="number" id="onion_quantity" name="onion_quantity" 
+                           value="{{ vegetables.onion.quantity }}" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="onion_weight">Weight (kg)</label>
+                    <input type="number" id="onion_weight" name="onion_weight" 
+                           value="{{ vegetables.onion.weight }}" class="form-control" min="0" step="0.1">
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="color: #e53e3e; margin-bottom: 1rem;">
+                    <i class="fas fa-apple-alt"></i> Tomatoes
+                </h4>
+                <div class="form-group">
+                    <label for="tomato_quantity">Quantity (pieces)</label>
+                    <input type="number" id="tomato_quantity" name="tomato_quantity" 
+                           value="{{ vegetables.tomato.quantity }}" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="tomato_weight">Weight (kg)</label>
+                    <input type="number" id="tomato_weight" name="tomato_weight" 
+                           value="{{ vegetables.tomato.weight }}" class="form-control" min="0" step="0.1">
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Update Storage
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

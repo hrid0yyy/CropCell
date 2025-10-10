@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}RFID Management - CropBox Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="page-title">
+        <i class="fas fa-id-card"></i> RFID Access Management
+    </h1>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert">
+                <i class="fas fa-info-circle"></i> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card">
+    <h3><i class="fas fa-plus"></i> Add New RFID Card</h3>
+    <form method="post" action="{{ url_for('rfid.add_rfid') }}" style="display: flex; gap: 1rem; align-items: end; max-width: 500px;">
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label for="rfid_number">RFID Number</label>
+            <input type="text" id="rfid_number" name="rfid_number" required class="form-control"
+                   placeholder="Enter RFID card number">
+        </div>
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-plus"></i> Add Card
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h3><i class="fas fa-list"></i> Authorized RFID Cards</h3>
+    {% if rfid_cards %}
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-id-card"></i> RFID Number</th>
+                    <th style="text-align: center;"><i class="fas fa-cogs"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in rfid_cards %}
+                <tr>
+                    <td style="font-family: monospace; font-weight: 500;">{{ card }}</td>
+                    <td style="text-align: center;">
+                        <a href="{{ url_for('rfid.remove_rfid', rfid_number=card) }}" 
+                           onclick="return confirm('Are you sure you want to remove this RFID card?')"
+                           class="btn btn-danger" style="padding: 6px 12px; font-size: 0.9rem;">
+                            <i class="fas fa-trash"></i> Remove
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: #718096; text-align: center; padding: 2rem;">
+            <i class="fas fa-info-circle"></i> No RFID cards registered yet.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

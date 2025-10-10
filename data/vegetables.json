@@ -1,0 +1,14 @@
+{
+  "potato": {
+    "quantity": 0,
+    "weight": 0.0
+  },
+  "onion": {
+    "quantity": 10,
+    "weight": 12.0
+  },
+  "tomato": {
+    "quantity": 0,
+    "weight": 0.0
+  }
+}
