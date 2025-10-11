@@ -48,7 +48,7 @@
 <div class="card">
     <h3><i class="fas fa-plus"></i> Update Storage</h3>
     <form method="post" action="{{ url_for('vegetables.update_vegetables') }}">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
             <div>
                 <h4 style="color: #d69e2e; margin-bottom: 1rem;">
                     <i class="fas fa-seedling"></i> Potatoes
@@ -98,8 +98,8 @@
             </div>
         </div>
         
-        <div style="text-align: center; margin-top: 2rem;">
-            <button type="submit" class="btn btn-success">
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-success" style="width: 100%; max-width: 300px;">
                 <i class="fas fa-save"></i> Update Storage
             </button>
         </div>

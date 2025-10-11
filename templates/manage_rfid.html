@@ -21,13 +21,13 @@
 
 <div class="card">
     <h3><i class="fas fa-plus"></i> Add New RFID Card</h3>
-    <form method="post" action="{{ url_for('rfid.add_rfid') }}" style="display: flex; gap: 1rem; align-items: end; max-width: 500px;">
-        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+    <form method="post" action="{{ url_for('rfid.add_rfid') }}" style="display: flex; flex-direction: column; gap: 1rem; max-width: 500px;">
+        <div class="form-group" style="margin-bottom: 0;">
             <label for="rfid_number">RFID Number</label>
             <input type="text" id="rfid_number" name="rfid_number" required class="form-control"
                    placeholder="Enter RFID card number">
         </div>
-        <button type="submit" class="btn btn-success">
+        <button type="submit" class="btn btn-success" style="align-self: flex-start;">
             <i class="fas fa-plus"></i> Add Card
         </button>
     </form>
