@@ -7,23 +7,18 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/api/verify_rfid', methods=['POST'])
 def verify_rfid():
-    """API endpoint for ESP32 to verify RFID cards"""
+    """API endpoint for ESP32 to verify RFID cards; returns only true/false."""
     try:
-        data = request.get_json()
-        if not data or 'rfid_number' not in data:
-            return jsonify({"error": "RFID number required"}), 400
-        
-        rfid_number = data['rfid_number']
-        verified = is_rfid_verified(rfid_number)
-        
-        # Log the request
-        log_request(rfid_number, verified, request.remote_addr)
-        
-        return jsonify({
-            "rfid_number": rfid_number,
-            "verified": verified,
-            "timestamp": datetime.now().isoformat()
-        })
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        data = request.get_json(silent=True) or {}
+        rfid_number = data.get('rfid_number', '')
+        verified = is_rfid_verified(rfid_number) if rfid_number else False
+
+        # Log only when we have an RFID number
+        if rfid_number:
+            log_request(rfid_number, verified, request.remote_addr)
+
+        # Return only the boolean
+        return jsonify(verified)
+    except Exception:
+        # On any error, just return false
+        return jsonify(False)
