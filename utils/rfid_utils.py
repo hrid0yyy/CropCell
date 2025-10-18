@@ -1,38 +1,50 @@
 import json
 import os
-from config import RFID_CARDS_FILE
+from datetime import datetime
+from config import FIRESTORE_DB
 
 def load_rfid_cards():
-    """Load verified RFID cards from JSON file"""
-    if os.path.exists(RFID_CARDS_FILE):
-        with open(RFID_CARDS_FILE, 'r') as f:
-            return json.load(f)
-    return []
+    """Load verified RFID cards from Firestore."""
+    if FIRESTORE_DB is None:
+        return []
+    try:
+        docs = FIRESTORE_DB.collection("rfid_cards").stream()
+        return [doc.id for doc in docs]
+    except Exception:
+        return []
 
 def save_rfid_cards(cards):
-    """Save RFID cards to JSON file"""
-    with open(RFID_CARDS_FILE, 'w') as f:
-        json.dump(cards, f, indent=2)
+    """No-op retained for compatibility (Firestore used instead)."""
+    pass
 
 def add_rfid_card(rfid_number):
-    """Add a new RFID card"""
-    cards = load_rfid_cards()
-    if rfid_number not in cards:
-        cards.append(rfid_number)
-        save_rfid_cards(cards)
+    """Add a new RFID card to Firestore."""
+    if FIRESTORE_DB is None:
+        return False
+    try:
+        doc_ref = FIRESTORE_DB.collection("rfid_cards").document(rfid_number)
+        if doc_ref.get().exists:
+            return False
+        doc_ref.set({"rfid_number": rfid_number, "created_at": datetime.utcnow().isoformat()})
         return True
-    return False
+    except Exception:
+        return False
 
 def remove_rfid_card(rfid_number):
-    """Remove an RFID card"""
-    cards = load_rfid_cards()
-    if rfid_number in cards:
-        cards.remove(rfid_number)
-        save_rfid_cards(cards)
+    """Remove an RFID card from Firestore."""
+    if FIRESTORE_DB is None:
+        return False
+    try:
+        FIRESTORE_DB.collection("rfid_cards").document(rfid_number).delete()
         return True
-    return False
+    except Exception:
+        return False
 
 def is_rfid_verified(rfid_number):
-    """Check if RFID card is verified"""
-    cards = load_rfid_cards()
-    return rfid_number in cards
+    """Check if RFID card is verified via Firestore."""
+    if FIRESTORE_DB is None:
+        return False
+    try:
+        return FIRESTORE_DB.collection("rfid_cards").document(rfid_number).get().exists
+    except Exception:
+        return False

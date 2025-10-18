@@ -1,51 +1,69 @@
-import json
-import os
 from datetime import datetime
-from config import REQUESTS_LOG_FILE
+from config import FIRESTORE_DB
+try:
+    from firebase_admin import firestore
+except Exception:
+    firestore = None
 
 def log_request(rfid_number, verified, ip_address):
-    """Log incoming RFID requests"""
-    log_entry = {
-        "timestamp": datetime.now().isoformat(),
-        "rfid_number": rfid_number,
-        "verified": verified,
-        "ip_address": ip_address
-    }
-    
-    logs = load_requests_log()
-    logs.append(log_entry)
-    
-    # Keep only last 100 requests
-    logs = logs[-100:]
-    
-    with open(REQUESTS_LOG_FILE, 'w') as f:
-        json.dump(logs, f, indent=2)
+    """Log incoming RFID requests to Firestore."""
+    if FIRESTORE_DB is None:
+        return
+    try:
+        FIRESTORE_DB.collection("requests_log").add({
+            "timestamp": datetime.now().isoformat(),
+            "rfid_number": rfid_number,
+            "verified": bool(verified),
+            "ip_address": ip_address
+        })
+    except Exception:
+        pass
 
 def load_requests_log():
-    """Load request logs"""
-    if os.path.exists(REQUESTS_LOG_FILE):
-        with open(REQUESTS_LOG_FILE, 'r') as f:
-            return json.load(f)
-    return []
+    """Load request logs from Firestore (up to 100 oldest)."""
+    if FIRESTORE_DB is None or firestore is None:
+        return []
+    try:
+        snaps = (FIRESTORE_DB.collection("requests_log")
+                 .order_by("timestamp", direction=firestore.Query.ASCENDING)
+                 .limit(100).stream())
+        return [doc.to_dict() for doc in snaps]
+    except Exception:
+        return []
 
 def get_recent_requests(count=10):
-    """Get recent requests for dashboard with formatted timestamps"""
-    recent_requests = load_requests_log()[-count:]
-    
-    # Format timestamps for display
-    for request in recent_requests:
-        try:
-            # Parse ISO timestamp and format it nicely
-            dt = datetime.fromisoformat(request['timestamp'])
-            request['formatted_timestamp'] = dt.strftime('%Y-%m-%d %H:%M:%S')
-        except:
-            # Fallback to original format if parsing fails
-            request['formatted_timestamp'] = request['timestamp'][:19]
-    
-    recent_requests.reverse()  # Show newest first
-    return recent_requests
+    """Get recent requests for dashboard with formatted timestamps."""
+    if FIRESTORE_DB is None or firestore is None:
+        return []
+    try:
+        snaps = (FIRESTORE_DB.collection("requests_log")
+                 .order_by("timestamp", direction=firestore.Query.DESCENDING)
+                 .limit(count).stream())
+        recent_requests = [doc.to_dict() for doc in snaps]
+        for request in recent_requests:
+            try:
+                dt = datetime.fromisoformat(request.get('timestamp', ''))
+                request['formatted_timestamp'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+            except Exception:
+                request['formatted_timestamp'] = (request.get('timestamp') or '')[:19]
+        return recent_requests
+    except Exception:
+        return []
 
 def clear_all_logs():
-    """Clear all request logs"""
-    with open(REQUESTS_LOG_FILE, 'w') as f:
-        json.dump([], f, indent=2)
+    """Clear all request logs from Firestore."""
+    if FIRESTORE_DB is None:
+        return
+    try:
+        batch = FIRESTORE_DB.batch()
+        i = 0
+        for doc in FIRESTORE_DB.collection("requests_log").stream():
+            batch.delete(doc.reference)
+            i += 1
+            if i % 400 == 0:
+                batch.commit()
+                batch = FIRESTORE_DB.batch()
+        if i % 400 != 0:
+            batch.commit()
+    except Exception:
+        pass
