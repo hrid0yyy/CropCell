@@ -17,7 +17,9 @@ def log_request(rfid_number, verified, ip_address):
             REDIS.ltrim("requests_log", 0, 99)
             return
         except Exception:
-            pass
+            # Do not fall back to file writes on serverless
+            return
+    # Local dev fallback
     logs = load_requests_log()
     logs.append(entry)
     logs = logs[-100:]
@@ -31,6 +33,7 @@ def load_requests_log():
             items = REDIS.lrange("requests_log", 0, 99)  # newest first
             return [json.loads(i) for i in items]
         except Exception:
+            # Safe to read JSON if available
             pass
     if os.path.exists(REQUESTS_LOG_FILE):
         with open(REQUESTS_LOG_FILE, 'r') as f:
@@ -51,6 +54,7 @@ def get_recent_requests(count=10):
                     r['formatted_timestamp'] = (r.get('timestamp') or '')[:19]
             return recent_requests
         except Exception:
+            # Fall back to readonly JSON read if present
             pass
     recent_requests = load_requests_log()[-count:]
     for r in recent_requests:
@@ -69,6 +73,8 @@ def clear_all_logs():
             REDIS.delete("requests_log")
             return
         except Exception:
-            pass
+            # Do not write to file on serverless
+            return
+    # Local dev fallback
     with open(REQUESTS_LOG_FILE, 'w') as f:
         json.dump([], f, indent=2)

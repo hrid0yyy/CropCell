@@ -8,6 +8,7 @@ def load_rfid_cards():
 		try:
 			return sorted(list(REDIS.smembers("rfid_cards")))
 		except Exception:
+			# Do not write; safe to read JSON if exists (local dev)
 			pass
 	if os.path.exists(RFID_CARDS_FILE):
 		with open(RFID_CARDS_FILE, 'r') as f:
@@ -25,7 +26,9 @@ def add_rfid_card(rfid_number):
 		try:
 			return REDIS.sadd("rfid_cards", rfid_number) == 1
 		except Exception:
-			pass
+			# On serverless, avoid file write fallback
+			return False
+	# Local dev fallback
 	cards = load_rfid_cards()
 	if rfid_number not in cards:
 		cards.append(rfid_number)
@@ -41,6 +44,7 @@ def remove_rfid_card(rfid_number):
 			return True
 		except Exception:
 			return False
+	# Local dev fallback
 	cards = load_rfid_cards()
 	if rfid_number in cards:
 		cards.remove(rfid_number)
@@ -54,6 +58,6 @@ def is_rfid_verified(rfid_number):
 		try:
 			return bool(REDIS.sismember("rfid_cards", rfid_number))
 		except Exception:
-			pass
+			return False
 	cards = load_rfid_cards()
 	return rfid_number in cards

@@ -18,6 +18,7 @@ def load_vegetables():
             REDIS.set("vegetables", json.dumps(DEFAULT_VEG))
             return DEFAULT_VEG
         except Exception:
+            # Safe to read JSON if present
             pass
     if os.path.exists(VEGETABLES_FILE):
         with open(VEGETABLES_FILE, 'r') as f:
@@ -31,7 +32,9 @@ def save_vegetables(vegetables):
             REDIS.set("vegetables", json.dumps(vegetables))
             return
         except Exception:
-            pass
+            # Do not write to file on serverless
+            return
+    # Local dev fallback
     with open(VEGETABLES_FILE, 'w') as f:
         json.dump(vegetables, f, indent=2)
 
