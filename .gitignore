@@ -1,5 +1,4 @@
 /venv
 /__pycache__
 # Service account and env files
-cropbox-*-firebase-adminsdk-*.json
 *.env

@@ -1,80 +1,52 @@
-import json
-import os
 from datetime import datetime
-from config import REQUESTS_LOG_FILE, REDIS
+from config import SUPABASE
 
 def log_request(rfid_number, verified, ip_address):
-    """Log incoming RFID requests"""
-    entry = {
-        "timestamp": datetime.now().isoformat(),
-        "rfid_number": rfid_number,
-        "verified": bool(verified),
-        "ip_address": ip_address,
-    }
-    if REDIS:
-        try:
-            REDIS.lpush("requests_log", json.dumps(entry))
-            REDIS.ltrim("requests_log", 0, 99)
-            return
-        except Exception:
-            # Do not fall back to file writes on serverless
-            return
-    # Local dev fallback
-    logs = load_requests_log()
-    logs.append(entry)
-    logs = logs[-100:]
-    with open(REQUESTS_LOG_FILE, 'w') as f:
-        json.dump(logs, f, indent=2)
+    """Log incoming RFID requests to Supabase."""
+    if SUPABASE is None:
+        return
+    try:
+        SUPABASE.table("requests_log").insert({
+            "timestamp": datetime.now().isoformat(),
+            "rfid_number": rfid_number,
+            "verified": bool(verified),
+            "ip_address": ip_address
+        }).execute()
+    except Exception:
+        pass
 
 def load_requests_log():
-    """Load request logs"""
-    if REDIS:
-        try:
-            items = REDIS.lrange("requests_log", 0, 99)  # newest first
-            return [json.loads(i) for i in items]
-        except Exception:
-            # Safe to read JSON if available
-            pass
-    if os.path.exists(REQUESTS_LOG_FILE):
-        with open(REQUESTS_LOG_FILE, 'r') as f:
-            return json.load(f)
-    return []
+    """Load request logs (oldest first, up to 100)."""
+    if SUPABASE is None:
+        return []
+    try:
+        res = SUPABASE.table("requests_log").select("*").order("timestamp", desc=False).limit(100).execute()
+        return res.data or []
+    except Exception:
+        return []
 
 def get_recent_requests(count=10):
-    """Get recent requests for dashboard with formatted timestamps"""
-    if REDIS:
-        try:
-            items = REDIS.lrange("requests_log", 0, count - 1)  # newest first
-            recent_requests = [json.loads(i) for i in items]
-            for r in recent_requests:
-                try:
-                    dt = datetime.fromisoformat(r.get('timestamp', ''))
-                    r['formatted_timestamp'] = dt.strftime('%Y-%m-%d %H:%M:%S')
-                except Exception:
-                    r['formatted_timestamp'] = (r.get('timestamp') or '')[:19]
-            return recent_requests
-        except Exception:
-            # Fall back to readonly JSON read if present
-            pass
-    recent_requests = load_requests_log()[-count:]
-    for r in recent_requests:
-        try:
-            dt = datetime.fromisoformat(r.get('timestamp', ''))
-            r['formatted_timestamp'] = dt.strftime('%Y-%m-%d %H:%M:%S')
-        except Exception:
-            r['formatted_timestamp'] = (r.get('timestamp') or '')[:19]
-    recent_requests.reverse()
-    return recent_requests
+    """Get recent requests for dashboard with formatted timestamps (newest first)."""
+    if SUPABASE is None:
+        return []
+    try:
+        res = SUPABASE.table("requests_log").select("*").order("timestamp", desc=True).limit(count).execute()
+        recent_requests = res.data or []
+        for request in recent_requests:
+            try:
+                dt = datetime.fromisoformat(request.get('timestamp', ''))
+                request['formatted_timestamp'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+            except Exception:
+                request['formatted_timestamp'] = (request.get('timestamp') or '')[:19]
+        return recent_requests
+    except Exception:
+        return []
 
 def clear_all_logs():
-    """Clear all request logs"""
-    if REDIS:
-        try:
-            REDIS.delete("requests_log")
-            return
-        except Exception:
-            # Do not write to file on serverless
-            return
-    # Local dev fallback
-    with open(REQUESTS_LOG_FILE, 'w') as f:
-        json.dump([], f, indent=2)
+    """Clear all request logs from Supabase."""
+    if SUPABASE is None:
+        return
+    try:
+        SUPABASE.table("requests_log").delete().gt("timestamp", "").execute()
+    except Exception:
+        pass

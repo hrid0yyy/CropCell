@@ -1,6 +1,6 @@
 import json
 import os
-from config import VEGETABLES_FILE, REDIS
+from config import VEGETABLES_FILE, REDIS, SUPABASE
 
 DEFAULT_VEG = {
     "potato": {"quantity": 0, "weight": 0.0},
@@ -9,37 +9,49 @@ DEFAULT_VEG = {
 }
 
 def load_vegetables():
-    """Load vegetable data (Redis or JSON)"""
-    if REDIS:
-        try:
-            data_str = REDIS.get("vegetables")
-            if data_str:
-                return json.loads(data_str)
-            REDIS.set("vegetables", json.dumps(DEFAULT_VEG))
-            return DEFAULT_VEG
-        except Exception:
-            # Safe to read JSON if present
-            pass
-    if os.path.exists(VEGETABLES_FILE):
-        with open(VEGETABLES_FILE, 'r') as f:
-            return json.load(f)
-    return DEFAULT_VEG
+    """Load vegetable data from Supabase and ensure defaults exist."""
+    if SUPABASE is None:
+        return DEFAULT_VEG
+    try:
+        names = ["potato", "onion", "tomato"]
+        res = SUPABASE.table("vegetables").select("name,quantity,weight").in_("name", names).execute()
+        data = {**DEFAULT_VEG}
+        rows = res.data or []
+        for row in rows:
+            n = row.get("name")
+            if n in data:
+                data[n] = {
+                    "quantity": int(row.get("quantity") or 0),
+                    "weight": float(row.get("weight") or 0.0),
+                }
+        # Upsert missing defaults
+        missing = []
+        present = {r.get("name") for r in rows}
+        for n in names:
+            if n not in present:
+                missing.append({"name": n, **data[n]})
+        if missing:
+            SUPABASE.table("vegetables").upsert(missing, on_conflict="name").execute()
+        return data
+    except Exception:
+        return DEFAULT_VEG
 
 def save_vegetables(vegetables):
-    """Save vegetable data (Redis or JSON)"""
-    if REDIS:
-        try:
-            REDIS.set("vegetables", json.dumps(vegetables))
-            return
-        except Exception:
-            # Do not write to file on serverless
-            return
-    # Local dev fallback
-    with open(VEGETABLES_FILE, 'w') as f:
-        json.dump(vegetables, f, indent=2)
+    """Persist vegetables dict to Supabase."""
+    if SUPABASE is None:
+        return
+    rows = [
+        {"name": "potato", "quantity": int(vegetables["potato"]["quantity"]), "weight": float(vegetables["potato"]["weight"])},
+        {"name": "onion", "quantity": int(vegetables["onion"]["quantity"]), "weight": float(vegetables["onion"]["weight"])},
+        {"name": "tomato", "quantity": int(vegetables["tomato"]["quantity"]), "weight": float(vegetables["tomato"]["weight"])},
+    ]
+    try:
+        SUPABASE.table("vegetables").upsert(rows, on_conflict="name").execute()
+    except Exception:
+        pass
 
 def update_vegetable_data(potato_qty, potato_weight, onion_qty, onion_weight, tomato_qty, tomato_weight):
-    """Update all vegetable data"""
+    """Update all vegetable data in Supabase."""
     vegetables = {
         "potato": {"quantity": int(potato_qty), "weight": float(potato_weight)},
         "onion": {"quantity": int(onion_qty), "weight": float(onion_weight)},

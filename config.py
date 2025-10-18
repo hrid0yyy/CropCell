@@ -10,25 +10,21 @@ VEGETABLES_FILE = 'data/vegetables.json'
 # Ensure data directory exists
 os.makedirs('data', exist_ok=True)
 
-# Initialize Redis (hardcoded URL, TLS enabled via rediss://)
+# Initialize Supabase (hardcoded URL and anon key)
 try:
-	import redis
-	from urllib.parse import urlparse
-
-	HARDCODED_REDIS_URL = "rediss://default:aWTPTH36pX9bEnLZoFcIjzeAhWBciR7n@redis-19765.crce214.us-east-1-3.ec2.redns.redis-cloud.com:19765"
-	parsed = urlparse(HARDCODED_REDIS_URL)
-	use_ssl = parsed.scheme == "rediss"
-	REDIS = redis.Redis.from_url(HARDCODED_REDIS_URL, decode_responses=True, ssl=use_ssl)
-	REDIS.ping()
-	print(f"✓ Redis client initialized ({parsed.hostname}:{parsed.port}, ssl={use_ssl})")
+    from supabase import create_client, Client as SupabaseClient  # type: ignore
+    SUPABASE_URL = "https://kbkurgbbumctjltdibhs.supabase.co"
+    SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtia3VyZ2JidW1jdGpsdGRpYmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NzAyNjQsImV4cCI6MjA3NjM0NjI2NH0.u2B_yv3nZYDSs62kxSy0LIIrM_MMTTmpLBdvyhfL_mQ"
+    SUPABASE: SupabaseClient = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    print("✓ Supabase client initialized")
 except Exception as e:
-	REDIS = None
-	print(f"✗ Failed to initialize Redis: {e}")
+    SUPABASE = None  # type: ignore
+    print(f"✗ Failed to initialize Supabase: {e}")
 
 # Initialize Gradio client at startup
 try:
-	GRADIO_CLIENT = Client("hrid0yyy/yolo-veggie-detector")
-	print("✓ Gradio YOLO client initialized successfully")
+    GRADIO_CLIENT = Client("hrid0yyy/yolo-veggie-detector")
+    print("✓ Gradio YOLO client initialized successfully")
 except Exception as e:
-	GRADIO_CLIENT = None
-	print(f"✗ Failed to initialize Gradio client: {e}")
+    GRADIO_CLIENT = None
+    print(f"✗ Failed to initialize Gradio client: {e}")

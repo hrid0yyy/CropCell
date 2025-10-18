@@ -1,3 +1,3 @@
 Flask
 gradio_client
-redis
+supabase

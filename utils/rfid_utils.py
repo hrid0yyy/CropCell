@@ -1,63 +1,52 @@
 import json
 import os
-from config import RFID_CARDS_FILE, REDIS
+from config import RFID_CARDS_FILE, REDIS, SUPABASE
 
 def load_rfid_cards():
-	"""Load verified RFID cards"""
-	if REDIS:
-		try:
-			return sorted(list(REDIS.smembers("rfid_cards")))
-		except Exception:
-			# Do not write; safe to read JSON if exists (local dev)
-			pass
-	if os.path.exists(RFID_CARDS_FILE):
-		with open(RFID_CARDS_FILE, 'r') as f:
-			return json.load(f)
-	return []
+    """Load verified RFID cards from Supabase."""
+    if SUPABASE is None:
+        return []
+    try:
+        res = SUPABASE.table("rfid_cards").select("rfid_number").execute()
+        data = res.data or []
+        return sorted([row["rfid_number"] for row in data])
+    except Exception:
+        return []
 
 def save_rfid_cards(cards):
-	"""Persist RFID cards (JSON fallback only)"""
-	with open(RFID_CARDS_FILE, 'w') as f:
-		json.dump(cards, f, indent=2)
+    """Persist RFID cards (JSON fallback only)"""
+    with open(RFID_CARDS_FILE, 'w') as f:
+        json.dump(cards, f, indent=2)
 
-def add_rfid_card(rfid_number):
-	"""Add a new RFID card"""
-	if REDIS:
-		try:
-			return REDIS.sadd("rfid_cards", rfid_number) == 1
-		except Exception:
-			# On serverless, avoid file write fallback
-			return False
-	# Local dev fallback
-	cards = load_rfid_cards()
-	if rfid_number not in cards:
-		cards.append(rfid_number)
-		save_rfid_cards(cards)
-		return True
-	return False
+def add_rfid_card(rfid_number: str):
+    """Add a new RFID card to Supabase."""
+    if SUPABASE is None:
+        return False
+    try:
+        exists = SUPABASE.table("rfid_cards").select("rfid_number").eq("rfid_number", rfid_number).limit(1).execute()
+        if exists.data:
+            return False
+        SUPABASE.table("rfid_cards").insert({"rfid_number": rfid_number}).execute()
+        return True
+    except Exception:
+        return False
 
-def remove_rfid_card(rfid_number):
-	"""Remove an RFID card"""
-	if REDIS:
-		try:
-			REDIS.srem("rfid_cards", rfid_number)
-			return True
-		except Exception:
-			return False
-	# Local dev fallback
-	cards = load_rfid_cards()
-	if rfid_number in cards:
-		cards.remove(rfid_number)
-		save_rfid_cards(cards)
-		return True
-	return False
+def remove_rfid_card(rfid_number: str):
+    """Remove an RFID card from Supabase."""
+    if SUPABASE is None:
+        return False
+    try:
+        SUPABASE.table("rfid_cards").delete().eq("rfid_number", rfid_number).execute()
+        return True
+    except Exception:
+        return False
 
-def is_rfid_verified(rfid_number):
-	"""Check if RFID card is verified"""
-	if REDIS:
-		try:
-			return bool(REDIS.sismember("rfid_cards", rfid_number))
-		except Exception:
-			return False
-	cards = load_rfid_cards()
-	return rfid_number in cards
+def is_rfid_verified(rfid_number: str):
+    """Check if RFID card is verified via Supabase."""
+    if SUPABASE is None:
+        return False
+    try:
+        res = SUPABASE.table("rfid_cards").select("rfid_number").eq("rfid_number", rfid_number).limit(1).execute()
+        return bool(res.data)
+    except Exception:
+        return False
