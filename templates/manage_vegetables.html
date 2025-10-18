@@ -19,84 +19,52 @@
     {% endif %}
 {% endwith %}
 
+{% if vegetables %}
 <div class="stats-grid">
+    {% for name, v in vegetables|dictsort %}
     <div class="stat-card">
-        <div class="stat-icon potato">
-            <i class="fas fa-seedling"></i>
+        <div class="stat-icon">
+            <i class="fas fa-carrot"></i>
         </div>
-        <div class="stat-value">{{ vegetables.potato.quantity }}</div>
-        <div class="stat-label">{{ vegetables.potato.weight }} kg Potatoes</div>
+        <div class="stat-value">{{ v.quantity }}</div>
+        <div class="stat-label">{{ v.weight }} kg {{ name|capitalize }}</div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon onion">
-            <i class="fas fa-circle"></i>
-        </div>
-        <div class="stat-value">{{ vegetables.onion.quantity }}</div>
-        <div class="stat-label">{{ vegetables.onion.weight }} kg Onions</div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon tomato">
-            <i class="fas fa-apple-alt"></i>
-        </div>
-        <div class="stat-value">{{ vegetables.tomato.quantity }}</div>
-        <div class="stat-label">{{ vegetables.tomato.weight }} kg Tomatoes</div>
-    </div>
+    {% endfor %}
 </div>
+{% else %}
+<div class="card">
+    <p style="color: #718096; text-align: center;">
+        <i class="fas fa-info-circle"></i> No vegetables found.
+    </p>
+</div>
+{% endif %}
 
 <div class="card">
     <h3><i class="fas fa-plus"></i> Update Storage</h3>
     <form method="post" action="{{ url_for('vegetables.update_vegetables') }}">
+        {% if vegetables %}
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            {% for name, v in vegetables|dictsort %}
             <div>
-                <h4 style="color: #d69e2e; margin-bottom: 1rem;">
-                    <i class="fas fa-seedling"></i> Potatoes
+                <h4 style="color: #4a5568; margin-bottom: 1rem;">
+                    <i class="fas fa-carrot"></i> {{ name|capitalize }}
                 </h4>
                 <div class="form-group">
-                    <label for="potato_quantity">Quantity (pieces)</label>
-                    <input type="number" id="potato_quantity" name="potato_quantity" 
-                           value="{{ vegetables.potato.quantity }}" class="form-control" min="0">
+                    <label for="quantity_{{ name }}">Quantity (pieces)</label>
+                    <input type="number" id="quantity_{{ name }}" name="quantity_{{ name }}" 
+                           value="{{ v.quantity }}" class="form-control" min="0">
                 </div>
                 <div class="form-group">
-                    <label for="potato_weight">Weight (kg)</label>
-                    <input type="number" id="potato_weight" name="potato_weight" 
-                           value="{{ vegetables.potato.weight }}" class="form-control" min="0" step="0.1">
+                    <label for="weight_{{ name }}">Weight (kg)</label>
+                    <input type="number" id="weight_{{ name }}" name="weight_{{ name }}" 
+                           value="{{ v.weight }}" class="form-control" min="0" step="0.1">
                 </div>
             </div>
-            
-            <div>
-                <h4 style="color: #805ad5; margin-bottom: 1rem;">
-                    <i class="fas fa-circle"></i> Onions
-                </h4>
-                <div class="form-group">
-                    <label for="onion_quantity">Quantity (pieces)</label>
-                    <input type="number" id="onion_quantity" name="onion_quantity" 
-                           value="{{ vegetables.onion.quantity }}" class="form-control" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="onion_weight">Weight (kg)</label>
-                    <input type="number" id="onion_weight" name="onion_weight" 
-                           value="{{ vegetables.onion.weight }}" class="form-control" min="0" step="0.1">
-                </div>
-            </div>
-            
-            <div>
-                <h4 style="color: #e53e3e; margin-bottom: 1rem;">
-                    <i class="fas fa-apple-alt"></i> Tomatoes
-                </h4>
-                <div class="form-group">
-                    <label for="tomato_quantity">Quantity (pieces)</label>
-                    <input type="number" id="tomato_quantity" name="tomato_quantity" 
-                           value="{{ vegetables.tomato.quantity }}" class="form-control" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="tomato_weight">Weight (kg)</label>
-                    <input type="number" id="tomato_weight" name="tomato_weight" 
-                           value="{{ vegetables.tomato.weight }}" class="form-control" min="0" step="0.1">
-                </div>
-            </div>
+            {% endfor %}
         </div>
+        {% else %}
+        <p style="color: #718096;">No vegetables to update.</p>
+        {% endif %}
         
         <div style="text-align: center; margin-top: 1.5rem;">
             <button type="submit" class="btn btn-success" style="width: 100%; max-width: 300px;">

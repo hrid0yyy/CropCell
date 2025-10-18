@@ -17,14 +17,26 @@ def update_vegetables():
         return redirect(url_for('auth.login'))
     
     try:
-        potato_qty = request.form.get('potato_quantity', 0)
-        potato_weight = request.form.get('potato_weight', 0.0)
-        onion_qty = request.form.get('onion_quantity', 0)
-        onion_weight = request.form.get('onion_weight', 0.0)
-        tomato_qty = request.form.get('tomato_quantity', 0)
-        tomato_weight = request.form.get('tomato_weight', 0.0)
+        # Collect dynamic fields: quantity_<name>, weight_<name>
+        quantity_map = {k[len("quantity_"):]: v for k, v in request.form.items() if k.startswith("quantity_")}
+        weight_map = {k[len("weight_"):]: v for k, v in request.form.items() if k.startswith("weight_")}
+        names = set(quantity_map.keys()) | set(weight_map.keys())
+
+        vegetables = {}
+        for n in names:
+            q = quantity_map.get(n, "")
+            w = weight_map.get(n, "")
+            try:
+                qv = int(q) if str(q).strip() != "" else 0
+            except Exception:
+                qv = 0
+            try:
+                wv = float(w) if str(w).strip() != "" else 0.0
+            except Exception:
+                wv = 0.0
+            vegetables[n] = {"quantity": qv, "weight": wv}
         
-        update_vegetable_data(potato_qty, potato_weight, onion_qty, onion_weight, tomato_qty, tomato_weight)
+        update_vegetable_data(vegetables)
         flash('Vegetable storage updated successfully!')
         
     except Exception as e:

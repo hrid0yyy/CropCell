@@ -12,31 +12,25 @@
     </p>
 </div>
 
+{% if vegetables %}
 <div class="stats-grid">
+    {% for name, v in vegetables|dictsort %}
     <div class="stat-card">
-        <div class="stat-icon potato">
-            <i class="fas fa-seedling"></i>
+        <div class="stat-icon">
+            <i class="fas fa-carrot"></i>
         </div>
-        <div class="stat-value">{{ vegetables.potato.quantity }}</div>
-        <div class="stat-label">{{ vegetables.potato.weight }} kg Potatoes</div>
+        <div class="stat-value">{{ v.quantity }}</div>
+        <div class="stat-label">{{ v.weight }} kg {{ name|capitalize }}</div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon onion">
-            <i class="fas fa-circle"></i>
-        </div>
-        <div class="stat-value">{{ vegetables.onion.quantity }}</div>
-        <div class="stat-label">{{ vegetables.onion.weight }} kg Onions</div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon tomato">
-            <i class="fas fa-apple-alt"></i>
-        </div>
-        <div class="stat-value">{{ vegetables.tomato.quantity }}</div>
-        <div class="stat-label">{{ vegetables.tomato.weight }} kg Tomatoes</div>
-    </div>
+    {% endfor %}
 </div>
+{% else %}
+<div class="card">
+    <p style="color: #718096; text-align: center;">
+        <i class="fas fa-info-circle"></i> No vegetables found.
+    </p>
+</div>
+{% endif %}
 
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
