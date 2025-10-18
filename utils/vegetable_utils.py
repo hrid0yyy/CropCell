@@ -57,3 +57,35 @@ def update_vegetable_data(potato_qty, potato_weight, onion_qty, onion_weight, to
     }
     save_vegetables(vegetables)
     return vegetables
+
+def increment_vegetable(name: str, qty_inc: int, weight_inc: float):
+    """Increment (or create) a vegetable row by name."""
+    if SUPABASE is None:
+        return None
+    try:
+        name = (name or "").strip().lower()
+        if not name:
+            return None
+
+        # Get current values
+        res = SUPABASE.table("vegetables").select("name,quantity,weight").eq("name", name).limit(1).execute()
+        rows = res.data or []
+        if rows:
+            curr_q = int(rows[0].get("quantity") or 0)
+            curr_w = float(rows[0].get("weight") or 0.0)
+        else:
+            curr_q = 0
+            curr_w = 0.0
+
+        new_q = curr_q + int(qty_inc or 0)
+        new_w = curr_w + float(weight_inc or 0.0)
+
+        # Upsert updated/new row
+        SUPABASE.table("vegetables").upsert(
+            {"name": name, "quantity": new_q, "weight": new_w},
+            on_conflict="name"
+        ).execute()
+
+        return {"name": name, "quantity": new_q, "weight": new_w}
+    except Exception:
+        return None
