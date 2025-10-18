@@ -1,6 +1,4 @@
-import json
-import os
-from config import RFID_CARDS_FILE, REDIS, SUPABASE
+from config import SUPABASE
 
 def load_rfid_cards():
     """Load verified RFID cards from Supabase."""
@@ -12,11 +10,6 @@ def load_rfid_cards():
         return sorted([row["rfid_number"] for row in data])
     except Exception:
         return []
-
-def save_rfid_cards(cards):
-    """Persist RFID cards (JSON fallback only)"""
-    with open(RFID_CARDS_FILE, 'w') as f:
-        json.dump(cards, f, indent=2)
 
 def add_rfid_card(rfid_number: str):
     """Add a new RFID card to Supabase."""

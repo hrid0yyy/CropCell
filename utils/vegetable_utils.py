@@ -1,6 +1,4 @@
-import json
-import os
-from config import VEGETABLES_FILE, REDIS, SUPABASE
+from config import SUPABASE
 
 DEFAULT_VEG = {
     "potato": {"quantity": 0, "weight": 0.0},
