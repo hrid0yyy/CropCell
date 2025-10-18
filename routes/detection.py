@@ -48,12 +48,28 @@ def detect_vegetables():
             # Clean up temporary file
             os.unlink(temp_file_path)
             
-            # Return the result
-            return jsonify({
-                "success": True,
-                "result": result,
-                "message": "Vegetable detection completed successfully"
-            })
+            # Extract the first detection only
+            vegetable_name = None
+            if isinstance(result, list) and result:
+                first = result[0]
+                if isinstance(first, dict):
+                    vegetable_name = first.get("class") or first.get("label") or first.get("name")
+                else:
+                    vegetable_name = str(first)
+            elif isinstance(result, dict):
+                candidates = None
+                for key in ("result", "detections", "labels"):
+                    if key in result:
+                        candidates = result[key]
+                        break
+                if isinstance(candidates, list) and candidates:
+                    first = candidates[0]
+                    if isinstance(first, dict):
+                        vegetable_name = first.get("class") or first.get("label") or first.get("name")
+                    else:
+                        vegetable_name = str(first)
+
+            return jsonify({"vegetable": vegetable_name})
             
         except Exception as gradio_error:
             # Clean up temporary file in case of error
