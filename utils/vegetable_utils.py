@@ -1,7 +1,6 @@
 import json
 import os
-# from config import VEGETABLES_FILE
-from config import FIRESTORE_DB
+from config import VEGETABLES_FILE, REDIS
 
 DEFAULT_VEG = {
     "potato": {"quantity": 0, "weight": 0.0},
@@ -10,41 +9,34 @@ DEFAULT_VEG = {
 }
 
 def load_vegetables():
-    """Load vegetable data from Firestore."""
-    if FIRESTORE_DB is None:
-        return DEFAULT_VEG
-    data = {**DEFAULT_VEG}
-    try:
-        for name in ["potato", "onion", "tomato"]:
-            ref = FIRESTORE_DB.collection("vegetables").document(name)
-            snap = ref.get()
-            if snap.exists:
-                row = snap.to_dict() or {}
-                data[name] = {
-                    "quantity": int(row.get("quantity") or 0),
-                    "weight": float(row.get("weight") or 0.0),
-                }
-            else:
-                ref.set(data[name])
-        return data
-    except Exception:
-        return DEFAULT_VEG
+    """Load vegetable data (Redis or JSON)"""
+    if REDIS:
+        try:
+            data_str = REDIS.get("vegetables")
+            if data_str:
+                return json.loads(data_str)
+            REDIS.set("vegetables", json.dumps(DEFAULT_VEG))
+            return DEFAULT_VEG
+        except Exception:
+            pass
+    if os.path.exists(VEGETABLES_FILE):
+        with open(VEGETABLES_FILE, 'r') as f:
+            return json.load(f)
+    return DEFAULT_VEG
 
 def save_vegetables(vegetables):
-    """Persist vegetables dict to Firestore."""
-    if FIRESTORE_DB is None:
-        return
-    try:
-        for name in ["potato", "onion", "tomato"]:
-            FIRESTORE_DB.collection("vegetables").document(name).set({
-                "quantity": int(vegetables[name]["quantity"]),
-                "weight": float(vegetables[name]["weight"]),
-            })
-    except Exception:
-        pass
+    """Save vegetable data (Redis or JSON)"""
+    if REDIS:
+        try:
+            REDIS.set("vegetables", json.dumps(vegetables))
+            return
+        except Exception:
+            pass
+    with open(VEGETABLES_FILE, 'w') as f:
+        json.dump(vegetables, f, indent=2)
 
 def update_vegetable_data(potato_qty, potato_weight, onion_qty, onion_weight, tomato_qty, tomato_weight):
-    """Update all vegetable data in Firestore."""
+    """Update all vegetable data"""
     vegetables = {
         "potato": {"quantity": int(potato_qty), "weight": float(potato_weight)},
         "onion": {"quantity": int(onion_qty), "weight": float(onion_weight)},
