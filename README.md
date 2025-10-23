@@ -167,8 +167,7 @@ For any queries, please reach out via email:
 
 - 📧 shamed221068@bscse.uiu.ac.bd
 - 📧 mchowdhury221075@bscse.uiu.ac.bd
-🌐 Project Page: [Live Link]([https://github.com/hrid0yyy/CropCell](https://cropcell.vercel.app/))
-
+🌐 Project Page: [Live Link](https://cropcell.vercel.app/)
 ---
 
 > **“Smart storage, smarter farming.”**  
