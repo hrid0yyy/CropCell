@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import os
 import tempfile
 from gradio_client import handle_file
-from config import GRADIO_CLIENT
+from config import GRADIO_CLIENT, SUPABASE
 
 detection_bp = Blueprint('detection', __name__)
 
@@ -69,7 +69,33 @@ def detect_vegetables():
                     else:
                         vegetable_name = str(first)
 
+            # Attempt to persist the last detection into Supabase (single-row upsert).
+            try:
+                if SUPABASE is not None:
+                    SUPABASE.table('last_detection').upsert({
+                        'id': 'singleton',
+                        'vegetable': vegetable_name
+                    }).execute()
+            except Exception as _e:
+                # Swallow DB errors to avoid breaking detection API; optionally log or handle separately
+                print(f"Warning: failed to persist last_detection to Supabase: {_e}")
+
             return jsonify({"vegetable": vegetable_name})
+            # Persist the last detection to Supabase (single-row table)
+            try:
+                if SUPABASE is not None:
+                    # Upsert a singleton row with id 'singleton' so the table always has one row
+                    SUPABASE.table('last_detection').upsert({
+                        'id': 'singleton',
+                        'vegetable': vegetable_name
+                    }).execute()
+            except Exception as db_error:
+                # Don't fail the request if DB write fails; log details in response for debugging
+                # (In production you may prefer logging instead of returning DB error details)
+                return jsonify({
+                    "vegetable": vegetable_name,
+                    "db_error": str(db_error)
+                }), 500
             
         except Exception as gradio_error:
             # Clean up temporary file in case of error
@@ -85,3 +111,28 @@ def detect_vegetables():
             "error": "Internal server error",
             "details": str(e)
         }), 500
+
+
+@detection_bp.route('/getName', methods=['GET'])
+def get_last_detected_name():
+    """Return the last detected vegetable name from Supabase as plain text."""
+    try:
+        if SUPABASE is None:
+            # Service not configured; return 503
+            return jsonify({"error": "Supabase not configured"}), 503
+
+        res = SUPABASE.table('last_detection').select('vegetable').eq('id', 'singleton').limit(1).execute()
+        data = getattr(res, 'data', None) or []
+        if not data:
+            # No record found
+            return ('', 204)
+
+        vegetable = data[0].get('vegetable')
+        if vegetable is None:
+            return ('', 204)
+
+        # Return plain text with the vegetable name
+        return (str(vegetable), 200, {'Content-Type': 'text/plain; charset=utf-8'})
+
+    except Exception as e:
+        return jsonify({"error": "Failed to read last detection", "details": str(e)}), 500
