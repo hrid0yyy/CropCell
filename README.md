@@ -64,15 +64,15 @@ We wanted to create an **affordable, intelligent, and scalable system** that:
 
 ## 🧩 System Components
 
-- 🧊 Cooling Chamber (Fridge)
-- ⚙️ Conveyor Belt System
+- 🧊 Cooling Chamber (Pelteir module)
+- ⚙️ Conveyor Belt System (Dc motor, bearing)
 - 🤖 Robotic Arm (Servo/Motor Controlled)
 - 📸 Camera Module (for classification)
-- ⚖️ Load/Weight Sensors
-- 💾 Database (e.g., Firebase / MySQL)
+- ⚖️ Load/Weight Sensors 
+- 💾 Database (e.g., Supabase / MySQL)
 - 🖥️ Dashboard Interface (with RFID authentication)
 - 🪪 RFID Module
-- 💡 Microcontroller (e.g., Raspberry Pi / Arduino)
+- 💡 Microcontroller (e.g., ESP 32 / Arduino)
 
 ---
 
@@ -123,13 +123,13 @@ The dashboard provides:
 
 | Category | Tools/Hardware |
 |-----------|----------------|
-| 🧠 **Microcontroller** | Arduino / Raspberry Pi |
+| 🧠 **Microcontroller** | Arduino / ESP 32 |
 | 🧰 **Sensors** | Load Cell (HX711), RFID RC522 |
 | 🎥 **Camera Module** | OpenCV / TensorFlow for classification |
 | ⚙️ **Motors** | Servo Motor / Stepper Motor |
-| 💻 **Backend** | Python / Node.js |
-| 🗃️ **Database** | MySQL / Firebase |
-| 🖥️ **Dashboard** | HTML, CSS, JavaScript, Flask / React |
+| 💻 **Backend** | Python |
+| 🗃️ **Database** | MySQL / Supabase |
+| 🖥️ **Dashboard** | HTML, CSS, JavaScript |
 | 📡 **Communication** | Serial / MQTT |
 
 ---
