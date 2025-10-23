@@ -90,7 +90,7 @@ The dashboard provides:
 
 ## 🎥 Project Demo
 
-### 📸 System Prototype
+### 📸 Full project
 ![System Prototype](images/system_prototype.png)
 
 ### ⚙️ Workflow Diagram
