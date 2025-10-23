@@ -163,9 +163,11 @@ The dashboard provides:
 ---
 
 ## 📬 Contact
+For any queries, please reach out via email:
 
-📧 Email: [your_email@example.com]  
-🌐 Project Page: [github.com/yourusername/cooling-storage-system](https://github.com/yourusername/cooling-storage-system)
+- 📧 shamed221068@bscse.uiu.ac.bd
+- 📧 mchowdhury221075@bscse.uiu.ac.bd
+🌐 Project Page: [Live Link]([https://github.com/hrid0yyy/CropCell](https://cropcell.vercel.app/))
 
 ---
 
