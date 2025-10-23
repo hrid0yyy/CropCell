@@ -102,6 +102,8 @@ The dashboard provides:
 ### 🧊 Cooling Storage in Operation
 ![Cooling Storage](images/cooling_fridge.jpg)
 
+### Yollo Model Interface
+[Yollo Model](https://huggingface.co/spaces/hrid0yyy/yolo-veggie-detector)
 ### 📹 Watch Our Demo Video  
 🎬 [Watch on YouTube](https://youtu.be/your-demo-link)  
 🎥 [Full Demonstration Video](videos/full_demo.mp4)
